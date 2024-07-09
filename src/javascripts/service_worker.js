@@ -25,6 +25,7 @@ chrome.runtime.onInstalled.addListener(({
       url: 'onboarding.html'
     });
   }
+  loadCarousel();
 });
 
 /**
