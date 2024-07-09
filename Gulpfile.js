@@ -49,7 +49,7 @@ function watch() {
 }
 
 function prepareZip() {
-    return gulp.src(['dist/**/*.*'])
+    return gulp.src(['dist/**/*.*'],{encoding: false})
         .pipe(zip(distFileName))
         .pipe(gulp.dest('.'));
 }
