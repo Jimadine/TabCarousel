@@ -20,8 +20,12 @@
   <form id="options">
     <table>
       <tr>
-        <th><label for="flipWait_ms">Flip Wait (ms):</label></th>
-        <td><input atuofocus id="flipWait_ms" name="flipWait_ms" type="number" min="1000" step="1000" /></td>
+        <th><label for="flipWait_ms">Flip Wait (seconds):</label></th>
+        <td><input autofocus id="flipWait_ms" name="flipWait_ms" type="number" min="1" step="1" /></td>
+      </tr>
+      <tr>
+        <th><label for="reloadWait_ms">Reload interval (minutes) (0 = disabled):</label></th>
+        <td><input auotfocus id="reloadWait_ms" name="reloadWait_ms" type="number" min="0" step="1" /></td>
       </tr>
       <tr>
         <th><label for="automaticStart">Start automatically:</label></th>

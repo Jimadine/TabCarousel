@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        background: './src/javascripts/background.js',
+        service_worker: './src/javascripts/service_worker.js',
         options: './src/javascripts/options.js',
     },
     output: {
