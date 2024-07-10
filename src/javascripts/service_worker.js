@@ -12,9 +12,7 @@ import { LS } from './shared.js';
 import { defaults } from './shared.js';
 import { constants } from './shared.js';
 
-chrome.runtime.onInstalled.addListener(({
-    reason
-}) => {
+chrome.runtime.onInstalled.addListener(({reason}) => {
     if (reason === 'install') {
         chrome.tabs.create({
             url: 'onboarding.html'
