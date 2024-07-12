@@ -98,18 +98,11 @@ class Carousel {
         }
     }
 
-    async _load(ms) {
+    async load() {
         chrome.action.onClicked.addListener(async () => await this._click());
         chrome.action.setTitle({
             title: 'Start Carousel'
         });
-
-        if (await this._automaticStart()) {
-            await this._start(ms);
-        }
-    }
-
-    async orchestrate() {
         let flipTabMs = await this._flipWait_ms();
         let flipTabMilliseconds = parseInt(flipTabMs);
         let flipTabMinutes = parseFloat((flipTabMilliseconds / 60000).toFixed(1));
@@ -135,7 +128,9 @@ class Carousel {
             });
         } else {
             // If setInterval-based tab switching will be used ...
-            this._load(flipTabMilliseconds);
+            if (await this._automaticStart()) {
+                await this._start(flipTabMilliseconds);
+            }
         }
     }
 
@@ -225,7 +220,7 @@ let started = false;
 function loadCarousel() {
     started = true;
     const carousel = new Carousel();
-    carousel.orchestrate();
+    carousel.load();
     chrome.alarms.onAlarm.addListener(async alarm => carousel.on_alarm(alarm));
 }
 
