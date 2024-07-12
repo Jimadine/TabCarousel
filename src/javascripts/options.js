@@ -35,7 +35,17 @@ function saveOptions() {
     return false;
 }
 
+function restoreOptions() {
+    document.getElementById(constants.flipWait_ms).value = defaults.flipWait_ms / 1000;
+    document.getElementById(constants.reloadWait_ms).value = defaults.reloadWait_ms / 60000;
+    document.getElementById(constants.automaticStart).checked = defaults.automaticStart;
+    document.getElementById(constants.bypassCache).checked = defaults.bypassCache;
+    saveOptions();
+    return false;
+}
+
 document.getElementById('save').onclick = saveOptions;
+document.getElementById('restore').onclick = restoreOptions;
 const flipWait_ms = await LS.getItem(constants.flipWait_ms) || defaults.flipWait_ms;
 document.getElementById(constants.flipWait_ms).value = flipWait_ms / 1000;
 
