@@ -118,44 +118,37 @@ class Carousel {
         let reloadMilliseconds = parseInt(reloadMs);
         let reloadMinutes = parseFloat((reloadMilliseconds / 60000).toFixed(1));
         let reloadAlarmName = `TabCarouselReloadTabsAlarm${reloadMilliseconds}`;
-        if (await this._automaticStart()) {
-            // Clear any reloadAlarms that might have been created if reload_ms was previously set to a different value
-            chrome.alarms.getAll(alarms => {
-                this._clear_redundant_alarms(alarms, reloadAlarmName);
+        // Clear any flipTabAlarms & reloadAlarms that might have been created if flipWait_ms / reload_ms were previously set to different values
+        chrome.alarms.getAll(alarms => {
+            this._clear_redundant_alarms(alarms, [reloadAlarmName, flipTabAlarmName]);
+        });
+        // If reloading is enabled ...
+        if (reloadMilliseconds > 0) {
+            chrome.alarms.get(reloadAlarmName, alarm => {
+                this._create_alarm(alarm, reloadAlarmName, reloadMilliseconds, reloadMinutes);
             });
-            // If reloading is enabled ...
-            if (reloadMilliseconds > 0) {
-                chrome.alarms.get(reloadAlarmName, alarm => {
-                    this._create_alarm(alarm, reloadAlarmName, reloadMilliseconds, reloadMinutes);
-                });
-            }
-            // If alarm-based tab switching will be used ...
-            if (flipTabMilliseconds > 30000) {
-                chrome.alarms.getAll(alarms => {
-                    this._clear_redundant_alarms(alarms, flipTabAlarmName);
-                });
-                chrome.alarms.get(flipTabAlarmName, alarm => {
-                    this._create_alarm(alarm, flipTabAlarmName, flipTabMilliseconds, flipTabMinutes);
-                });
-            } else {
-                // If setInterval-based tab switching will be used ...
-                // Clear any flipTabAlarms that might have been created if flipWait_ms was previously set to > 3000
-                chrome.alarms.getAll(alarms => {
-                    this._clear_redundant_alarms(alarms, flipTabAlarmName);
-                });
-                this._start(flipTabMilliseconds);
-            }
+        }
+        // If alarm-based tab switching will be used ...
+        if (flipTabMilliseconds > 30000) {
+            chrome.alarms.get(flipTabAlarmName, alarm => {
+                this._create_alarm(alarm, flipTabAlarmName, flipTabMilliseconds, flipTabMinutes);
+            });
+        } else {
+            // If setInterval-based tab switching will be used ...
+            this._load(flipTabMilliseconds);
         }
     }
 
-    _clear_redundant_alarms(alarms, alarmName) {
-        if (!alarms || !alarmName) return;
+    _clear_redundant_alarms(alarms, requiredAlarms) {
+        if (!alarms || !requiredAlarms) return;
         for (let alarm of alarms) {
-            if (alarm.name.startsWith('TabCarouselFlipTabAlarm') && alarmName.startsWith('TabCarouselFlipTabAlarm') && alarm.name != alarmName) {
-                chrome.alarms.clear(alarm.name);
-            }
-            if (alarm.name.startsWith('TabCarouselReloadTabsAlarm') && alarmName.startsWith('TabCarouselReloadTabsAlarm') && alarm.name != alarmName) {
-                chrome.alarms.clear(alarm.name);
+            for (let requiredAlarm of requiredAlarms) {
+                if (alarm.name.startsWith('TabCarouselFlipTabAlarm') && requiredAlarm.startsWith('TabCarouselFlipTabAlarm') && alarm.name != requiredAlarm) {
+                    chrome.alarms.clear(alarm.name);
+                }
+                if (alarm.name.startsWith('TabCarouselReloadTabsAlarm') && requiredAlarm.startsWith('TabCarouselReloadTabsAlarm') && alarm.name != requiredAlarm) {
+                    chrome.alarms.clear(alarm.name);
+                }
             }
         }
     }
@@ -169,9 +162,11 @@ class Carousel {
         }
     }
 
-    on_alarm(alarm) {
-        let alarmName = alarm.name;
-        this._get_window(alarmName);
+    async on_alarm(alarm) {
+        if (await this._automaticStart()) {
+            let alarmName = alarm.name;
+            this._get_window(alarmName);
+        }
     }
 
     _get_window(alarmName) {
