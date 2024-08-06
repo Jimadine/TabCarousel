@@ -31,7 +31,7 @@ function saveOptions() {
     LS.setItem(constants.reloadWait_ms, options.reloadWait_ms);
     LS.setItem(constants.automaticStart, options.automaticStart);
     LS.setItem(constants.bypassCache, options.bypassCache);
-    document.getElementById('status').innerHTML = 'Saved! Restart the browser to effect your changes';
+    document.getElementById('status').innerHTML = 'Saved.';
     return false;
 }
 

@@ -1,4 +1,3 @@
-
 /**
  * Chrome extension to cycle through tabs.
  *
@@ -26,7 +25,6 @@ chrome.runtime.onInstalled.addListener(({reason}) => {
  *
  * @class
  *
- * @property {Object} lastReloads_ms - An object to store the last reload time of each tab.
  * @property {number} lastTimeout - The ID of the last timeout set with setTimeout().
  *
  * @method constructor() - Initializes a new instance of the Carousel class.
@@ -37,29 +35,80 @@ class Carousel {
         this.lastTimeout = undefined;
     }
 
-    _start(ms) {
-        chrome.action.setIcon({
-            path: 'images/icon_32_exp_1.75_stop_emblem.png'
-        });
-        chrome.action.setTitle({
-            title: 'Stop Carousel'
-        });
-        setInterval(this._get_window.bind(this), ms);
+    _setTitle(state) {
+        if (state == 'stop') {
+            chrome.action.setIcon({
+                path: 'images/icon_32.png'
+            });
+            chrome.action.setTitle({
+                title: 'Start Carousel'
+            });
+        } else if (state == 'start') {
+            chrome.action.setIcon({
+                path: 'images/icon_32_exp_1.75_stop_emblem.png'
+            });
+            chrome.action.setTitle({
+                title: 'Stop Carousel'
+            });
+        }
     }
 
-    _running() {
-        return !!this.lastTimeout;
+    async _start() {
+        this._setTitle('start');
+        let flipTabMs = await this._flipWait_ms();
+        let flipTabMilliseconds = parseInt(flipTabMs);
+        let flipTabMinutes = parseFloat((flipTabMilliseconds / 60000).toFixed(1));
+        let flipTabAlarmName = `TabCarouselFlipTabAlarm${flipTabMilliseconds}`;
+        let reloadMs = await this._reloadWait_ms();
+        let reloadMilliseconds = parseInt(reloadMs);
+        let reloadMinutes = parseFloat((reloadMilliseconds / 60000).toFixed(1));
+        let reloadAlarmName = `TabCarouselReloadTabsAlarm${reloadMilliseconds}`;
+        // Clear any flipTabAlarms & reloadAlarms that might have been created if flipWait_ms / reload_ms were previously set to different values
+        chrome.alarms.getAll(alarms => {
+            this._clear_redundant_alarms(alarms, [reloadAlarmName, flipTabAlarmName]);
+        });
+        // If reloading is enabled ...
+        if (reloadMilliseconds > 0) {
+            chrome.alarms.get(reloadAlarmName, alarm => {
+                this._create_alarm(alarm, reloadAlarmName, reloadMilliseconds, reloadMinutes);
+            });
+        }
+        // If alarm-based tab switching will be used ...
+        if (flipTabMilliseconds > 30000) {
+            chrome.alarms.get(flipTabAlarmName, alarm => {
+                this._create_alarm(alarm, flipTabAlarmName, flipTabMilliseconds, flipTabMinutes);
+            });
+        } else {
+            const continuation = () => {
+                this._get_window();
+                this.lastTimeout = setTimeout(continuation, flipTabMilliseconds);
+            };
+            continuation();
+        }
     }
 
-    _stop() {
-        clearTimeout(this.lastTimeout);
-        this.lastTimeout = undefined;
-        chrome.action.setIcon({
-            path: 'images/icon_32.png'
-        });
-        chrome.action.setTitle({
-            title: 'Start Carousel'
-        });
+    async _running() {
+        let timeOut = !!this.lastTimeout
+        let alarms = await chrome.alarms.getAll();
+        let flipTabsAlarmRegistered = false;
+        for (let alarm of alarms) {
+            if (alarm.name.startsWith('TabCarouselFlipTabAlarm')) {
+                flipTabsAlarmRegistered = true;
+            }
+        }
+        if (timeOut || flipTabsAlarmRegistered) {
+            return true;
+        }
+        return false;
+    }
+
+    async _stop() {
+        this._setTitle('stop');
+        chrome.alarms.clearAll();
+        if (parseInt(await this._flipWait_ms()) <= 30000) {
+            clearTimeout(this.lastTimeout);
+            this.lastTimeout = undefined;
+        }
     }
 
     async _flipWait_ms() {
@@ -91,46 +140,15 @@ class Carousel {
     }
 
     async _click() {
-        if (!this._running()) {
-            await this._start();
-        } else {
-            this._stop();
-        }
+        await this._running() ? this._stop() : this._start();
     }
 
     async load() {
         chrome.action.onClicked.addListener(async () => await this._click());
-        chrome.action.setTitle({
-            title: 'Start Carousel'
-        });
-        let flipTabMs = await this._flipWait_ms();
-        let flipTabMilliseconds = parseInt(flipTabMs);
-        let flipTabMinutes = parseFloat((flipTabMilliseconds / 60000).toFixed(1));
-        let flipTabAlarmName = `TabCarouselFlipTabAlarm${flipTabMilliseconds}`;
-        let reloadMs = await this._reloadWait_ms();
-        let reloadMilliseconds = parseInt(reloadMs);
-        let reloadMinutes = parseFloat((reloadMilliseconds / 60000).toFixed(1));
-        let reloadAlarmName = `TabCarouselReloadTabsAlarm${reloadMilliseconds}`;
-        // Clear any flipTabAlarms & reloadAlarms that might have been created if flipWait_ms / reload_ms were previously set to different values
-        chrome.alarms.getAll(alarms => {
-            this._clear_redundant_alarms(alarms, [reloadAlarmName, flipTabAlarmName]);
-        });
-        // If reloading is enabled ...
-        if (reloadMilliseconds > 0) {
-            chrome.alarms.get(reloadAlarmName, alarm => {
-                this._create_alarm(alarm, reloadAlarmName, reloadMilliseconds, reloadMinutes);
-            });
-        }
-        // If alarm-based tab switching will be used ...
-        if (flipTabMilliseconds > 30000) {
-            chrome.alarms.get(flipTabAlarmName, alarm => {
-                this._create_alarm(alarm, flipTabAlarmName, flipTabMilliseconds, flipTabMinutes);
-            });
-        } else {
-            // If setInterval-based tab switching will be used ...
-            if (await this._automaticStart()) {
-                await this._start(flipTabMilliseconds);
-            }
+        let title = await chrome.action.getTitle({});
+        let isCarouselActive = (title == 'Stop Carousel') ? true : (title == 'Start Carousel') ? false : false;
+        if (await this._automaticStart() || isCarouselActive) {
+            await this._start();
         }
     }
 
@@ -158,7 +176,9 @@ class Carousel {
     }
 
     async on_alarm(alarm) {
-        if (await this._automaticStart()) {
+        let title = await chrome.action.getTitle({});
+        let isCarouselActive = (title == 'Stop Carousel') ? true : (title == 'Start Carousel') ? false : false;
+        if (await this._automaticStart() || isCarouselActive) {
             let alarmName = alarm.name;
             this._get_window(alarmName);
         }
