@@ -137,8 +137,7 @@ class Carousel {
 
     async load() {
         chrome.action.onClicked.addListener(async () => await this._click());
-        let title = await chrome.action.getTitle({});
-        let isCarouselActive = (title == 'Stop Carousel') ? true : (title == 'Start Carousel') ? false : false;
+        let isCarouselActive = ((await chrome.action.getTitle({}) || '') === 'Stop Carousel');
         if (await this._automaticStart() || isCarouselActive) {
             await this._start();
         }
@@ -168,8 +167,7 @@ class Carousel {
     }
 
     async on_alarm(alarm) {
-        let title = await chrome.action.getTitle({});
-        let isCarouselActive = (title == 'Stop Carousel') ? true : (title == 'Start Carousel') ? false : false;
+        let isCarouselActive = ((await chrome.action.getTitle({}) || '') === 'Stop Carousel');
         if (await this._automaticStart() || isCarouselActive) {
             let alarmName = alarm.name;
             this._get_window(alarmName);
