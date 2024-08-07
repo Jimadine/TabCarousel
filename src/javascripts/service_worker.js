@@ -36,21 +36,10 @@ class Carousel {
     }
 
     _setTitle(state) {
-        if (state == 'stop') {
-            chrome.action.setIcon({
-                path: 'images/icon_32.png'
-            });
-            chrome.action.setTitle({
-                title: 'Start Carousel'
-            });
-        } else if (state == 'start') {
-            chrome.action.setIcon({
-                path: 'images/icon_32_exp_1.75_stop_emblem.png'
-            });
-            chrome.action.setTitle({
-                title: 'Stop Carousel'
-            });
-        }
+      const iconPath = state === 'stop' ? 'images/icon_32.png' : 'images/icon_32_exp_1.75_stop_emblem.png';
+      const titleText = state === 'stop' ? 'Start Carousel' : 'Stop Carousel';
+      chrome.action.setIcon({ path: iconPath });
+      chrome.action.setTitle({ title: titleText });
     }
 
     async _start() {
