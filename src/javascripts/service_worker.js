@@ -4,7 +4,7 @@
  * @author Benjamin Oakes <hello@benjaminoakes.com>, @benjaminoakes
  * @author Madhur Ahuja, @madhur
  * @author Jim Adamson, @jimadine
- * @seealso http://code.google.com/chrome/extensions/background_pages.html
+ * @seealso https://developer.chrome.com/docs/extensions/develop/concepts/service-workers
  */
 
 import { LS } from './shared.js';
