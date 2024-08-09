@@ -35,7 +35,8 @@ export const defaults = {
     flipWait_ms: 15 * 1000,
     reloadWait_ms: 5 * 60 * 1000,
     automaticStart: false,
-    bypassCache: false
+    bypassCache: false,
+    reloadExcludedDomains: ''
 };
 
 export const constants = {
@@ -43,5 +44,6 @@ export const constants = {
     reloadWait_ms: 'reloadWait_ms',
     automaticStart: 'automaticStart',
     bypassCache: 'bypassCache',
+    reloadExcludedDomains: 'reloadExcludedDomains',
     firstRun: 'firstRun'
 };

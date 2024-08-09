@@ -113,6 +113,13 @@ class Carousel {
         }
     }
 
+    async _reloadExcludedDomains() {
+        const reloadExcludedDomains = await LS.getItem(constants.reloadExcludedDomains) || defaults.reloadExcludedDomains;
+        const lines = reloadExcludedDomains.split("\n");
+        const arr = lines.filter(line => line.trim() !== ""); // Remove empty lines
+        return arr;
+    }
+
     async _automaticStart() {
         const automaticStart = await LS.getItem(constants.automaticStart);
         if (automaticStart !== undefined) {
@@ -201,10 +208,17 @@ class Carousel {
 
     async _reload_tabs(tabs) {
         let bypassCache = await this._bypassCache();
+        let reloadExcludedDomains = await this._reloadExcludedDomains();
         for (var i = 0; i < tabs.length; i++) {
-            chrome.tabs.reload(tabs[i].id, {
-                bypassCache: bypassCache
-            });
+            // Extract the domain from the tab's URL
+            let tabDomain = new URL(tabs[i].url).hostname;
+            // Check if the tab's domain is not in the reloadExcludedDomains array before reloading
+            if (!reloadExcludedDomains.includes(tabDomain)) {
+                // Reload the tab if the domain is not excluded
+                chrome.tabs.reload(tabs[i].id, {
+                    bypassCache: bypassCache
+                });
+            }
         }
     }
 

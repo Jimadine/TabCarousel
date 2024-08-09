@@ -11,6 +11,17 @@
       font-weight: normal;
       text-align: right;
     }
+
+    th:has(label[for="reloadExcludedDomains"]) {
+      vertical-align: top;
+    }
+
+    #reloadExcludedDomains {
+      field-sizing: content;
+      min-width: 171px;
+      min-height: 32px;
+      outline: none;
+    }
   </style>
 </head>
 
@@ -35,7 +46,10 @@
         <th><label for="bypassCache">Bypass local cache (while reloading):</label></th>
         <td><input id="bypassCache" name="bypassCache" type="checkbox" /></td>
       </tr>
-
+      <tr>
+        <th><label for="reloadExcludedDomains">The following domains will be excluded from reloads:</label></th>
+        <td><textarea id="reloadExcludedDomains" name="reloadExcludedDomains" placeholder="Add one domain per line"></textarea></td>
+      </tr>
     </table>
     <br />
     <input type="button" value="Save" id="save" />

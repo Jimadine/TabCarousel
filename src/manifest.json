@@ -23,8 +23,9 @@
   },
   "options_page": "options.html",
   "permissions": [
-    "storage",
     "activeTab",
-    "alarms"
+    "alarms",
+    "storage",
+    "tabs"
   ]
 }

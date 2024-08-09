@@ -25,12 +25,14 @@ function saveOptions() {
         flipWait_ms: document.getElementById(constants.flipWait_ms).value * 1000,
         reloadWait_ms: document.getElementById(constants.reloadWait_ms).value * 60000,
         automaticStart: document.getElementById(constants.automaticStart).checked,
-        bypassCache: document.getElementById(constants.bypassCache).checked
+        bypassCache: document.getElementById(constants.bypassCache).checked,
+        reloadExcludedDomains: document.getElementById(constants.reloadExcludedDomains).value
     };
     LS.setItem(constants.flipWait_ms, options.flipWait_ms);
     LS.setItem(constants.reloadWait_ms, options.reloadWait_ms);
     LS.setItem(constants.automaticStart, options.automaticStart);
     LS.setItem(constants.bypassCache, options.bypassCache);
+    LS.setItem(constants.reloadExcludedDomains, options.reloadExcludedDomains);
     document.getElementById('status').innerHTML = 'Saved.';
     return false;
 }
@@ -40,6 +42,7 @@ function restoreOptions() {
     document.getElementById(constants.reloadWait_ms).value = defaults.reloadWait_ms / 60000;
     document.getElementById(constants.automaticStart).checked = defaults.automaticStart;
     document.getElementById(constants.bypassCache).checked = defaults.bypassCache;
+    document.getElementById(constants.reloadExcludedDomains).value = defaults.reloadExcludedDomains;
     saveOptions();
     return false;
 }
@@ -63,5 +66,10 @@ let bypassCache = await LS.getItem(constants.bypassCache);
 if (bypassCache === undefined) {
     bypassCache = defaults.bypassCache;
 }
+let reloadExcludedDomains = await LS.getItem(constants.reloadExcludedDomains);
+if (reloadExcludedDomains === undefined) {
+    reloadExcludedDomains = defaults.reloadExcludedDomains;
+}
 document.getElementById(constants.automaticStart).checked = automaticStart;
 document.getElementById(constants.bypassCache).checked = bypassCache;
+document.getElementById(constants.reloadExcludedDomains).value = reloadExcludedDomains;
