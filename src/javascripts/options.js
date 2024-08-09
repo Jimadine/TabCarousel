@@ -47,6 +47,27 @@ function restoreOptions() {
     return false;
 }
 
+function validateDomains() {
+    const lines = textarea.value.split('\n');
+    const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    let isValid = true;
+    lines.forEach(line => {
+        if (!domainRegex.test(line.trim())) {
+            isValid = false;
+        }
+    });
+
+    if (!isValid) {
+        document.getElementById('save').disabled = true;
+        textarea.setCustomValidity('Please enter a valid domain name');
+        textarea.reportValidity();
+    } else {
+        document.getElementById('save').disabled = false;
+        textarea.setCustomValidity('');
+    }
+}
+
 document.getElementById('save').onclick = saveOptions;
 document.getElementById('restore').onclick = restoreOptions;
 const flipWait_ms = await LS.getItem(constants.flipWait_ms) || defaults.flipWait_ms;
@@ -73,3 +94,7 @@ if (reloadExcludedDomains === undefined) {
 document.getElementById(constants.automaticStart).checked = automaticStart;
 document.getElementById(constants.bypassCache).checked = bypassCache;
 document.getElementById(constants.reloadExcludedDomains).value = reloadExcludedDomains;
+
+const textarea = document.getElementById('reloadExcludedDomains');
+textarea.addEventListener('input', validateDomains);
+textarea.addEventListener('blur', () => textarea.value === '' && (document.getElementById('save').disabled = false));
