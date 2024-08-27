@@ -222,23 +222,31 @@ class Carousel {
         }
     }
 
+    async on_storage() {
+        let isCarouselActive = ((await chrome.action.getTitle({}) || '') === 'Stop Carousel');
+        if (await this.#running() || isCarouselActive) {
+            this.#stop();
+            loadCarousel();
+        }
+    }
 }
 
-let started = false;
+let carousel;
 
 function loadCarousel() {
-    started = true;
-    const carousel = new Carousel();
+    carousel = new Carousel();
     carousel.load();
     chrome.alarms.onAlarm.addListener(async alarm => carousel.on_alarm(alarm));
 }
 
 chrome.runtime.onStartup.addListener(() => {
-    if (!started) {
-        loadCarousel();
+    loadCarousel();
+});
+
+chrome.storage.onChanged.addListener(function (changes, areaName) {
+    if (areaName === "local") {
+        carousel.on_storage();
     }
 });
 
-if (!started) {
-    loadCarousel();
-}
+loadCarousel();
