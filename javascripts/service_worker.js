@@ -210,14 +210,23 @@ class Carousel {
         let bypassCache = await this.#bypassCache();
         let reloadExcludedDomains = await this.#reloadExcludedDomains();
         for (var i = 0; i < tabs.length; i++) {
-            // Extract the domain from the tab's URL
-            let tabDomain = new URL(tabs[i].url).hostname;
-            // Check if the tab's domain is not in the reloadExcludedDomains array before reloading
-            if (!reloadExcludedDomains.includes(tabDomain)) {
-                // Reload the tab if the domain is not excluded
-                chrome.tabs.reload(tabs[i].id, {
-                    bypassCache: bypassCache
-                });
+            // Check if the tab's URL is valid
+            if (tabs[i].url) {
+                try {
+                    // Extract the domain from the tab's URL
+                    let tabDomain = new URL(tabs[i].url).hostname;
+                    // Check if the tab's domain is not in the reloadExcludedDomains array before reloading
+                    if (!reloadExcludedDomains.includes(tabDomain)) {
+                        // Reload the tab if the domain is not excluded
+                        chrome.tabs.reload(tabs[i].id, {
+                            bypassCache: bypassCache
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Invalid URL: ${tabs[i].url}`, e);
+                }
+            } else {
+                console.warn(`Tab URL is undefined or empty for tab ID: ${tabs[i].id}`);
             }
         }
     }
