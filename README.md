@@ -11,6 +11,7 @@ import { LS } from './shared.js';
 import { defaults } from './shared.js';
 import { constants } from './shared.js';
 ```
+
 2. `service_worker.js`:
 
 In the `#setTitle` private method, the path to the `images` subfolder was changed by prepending `..` to the `images` subfolder reference. This reflects the fact that `service_worker.js` exists in a subfolder in this branch, so the relative location of `images` differs.
